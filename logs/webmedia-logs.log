@@ -1,0 +1,1 @@
+{"level":"error","message":"config.get is not a function config.get is not a function","stack":"TypeError: config.get is not a function\n    at C:\\Users\\Windows 10\\Desktop\\web-media\\backend\\routes\\user.js:32:52\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)"}
