@@ -6,6 +6,7 @@ const jwt = require('jsonwebtoken')
 const { User, validate, validateRegister } = require('../models/user')
 const { Post } = require('../models/post')
 const auth = require('../middleware/auth')
+const moment = require('moment')
 require('dotenv').config()
 
 router.post('/', auth, async (req, res) => {
@@ -21,11 +22,19 @@ router.post('/login', async (req, res) => {
   const { error } = validate(req.body)
   if (error) return res.status(400).send(error.details[0].message)
 
-  const user = await User.findOne({
-    username: req.body.username,
-  })
+  const user = await User.findOneAndUpdate(
+    {
+      username: req.body.username,
+    },
+    { lastTimeSeen: moment().format('LLL') }
+  )
 
-  const isValidPassword = bcrypt.compare(req.body.password, user.password)
+  if (!user) return res.status(400).send('Wrong username or password')
+
+  if (user.status === 'Blocked')
+    return res.status(403).send('This user is blocked')
+
+  const isValidPassword = await bcrypt.compare(req.body.password, user.password)
   if (!isValidPassword)
     return res.status(400).send('Wrong username or password')
 
@@ -49,11 +58,19 @@ router.post('/register', async (req, res) => {
       username: req.body.username,
       email: req.body.email,
       password: req.body.password,
+      regisTime: new Date()
+        .toISOString()
+        .replace('-', '/')
+        .split('T')[0]
+        .replace('-', '/')
+        .toString(),
+      lastTimeSeen: moment().format('LLL'),
       avatar: '',
       bio: '',
       workplace: '',
       hobbies: '',
       address: '',
+      status: 'Active',
       followings: [],
       followers: [],
     })
@@ -63,14 +80,34 @@ router.post('/register', async (req, res) => {
     await user.save()
 
     // Generating token and sending it
-    const token = jwt.sign({ _id: user._id }, 'MyPrIvAtEkEy')
+    const token = jwt.sign({ _id: user._id }, process.env.JWT_KEY)
     res.status(200).send({ token, userId: user._id })
   } catch (err) {
     res.status(400).send(err)
   }
 })
 
-router.post('/check', auth, async (req, res) => {
+router.get('/left', auth, async (req, res) => {
+  await User.findOneAndUpdate(
+    { _id: req.user._id },
+    {
+      lastTimeSeen: moment().format('LLL'),
+    }
+  )
+  res.status(200).send('user left')
+})
+
+router.get('/online', auth, async (req, res) => {
+  await User.findOneAndUpdate(
+    { _id: req.user._id },
+    {
+      lastTimeSeen: 'Online',
+    }
+  )
+  res.status(200).send('user is online')
+})
+
+router.get('/check', auth, async (req, res) => {
   const isValidId = mongoose.Types.ObjectId.isValid(req.user._id)
   if (!isValidId) return res.status(400).send('Invalid ID')
 

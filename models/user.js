@@ -26,8 +26,7 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true,
-    minlength: 5,
-    maxlength: 1024,
+    minlength: 1,
   },
   avatar: {
     type: String,
@@ -54,6 +53,11 @@ const userSchema = new mongoose.Schema({
     type: Array,
     required: true,
   },
+  regisTime: {
+    type: String,
+  },
+  lastTimeSeen: { type: String },
+  status: { type: String },
 })
 
 userSchema.methods.generateAuthToken = function () {
@@ -67,7 +71,7 @@ function validateRegister(user) {
   const schema = Joi.object({
     name: Joi.string().min(3).required(),
     username: Joi.string().min(3).trim().required(),
-    password: Joi.string().min(6).trim().required(),
+    password: Joi.string().min(1).trim().required(),
     email: Joi.string().email().required(),
   })
 
@@ -77,7 +81,7 @@ function validateRegister(user) {
 function validateUser(user) {
   const schema = Joi.object({
     username: Joi.string().min(1).max(15).trim().required(),
-    password: Joi.string().min(6).max(255).required(),
+    password: Joi.string().min(1).max(255).required(),
   })
 
   return schema.validate(user)
