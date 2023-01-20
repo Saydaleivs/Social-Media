@@ -8,6 +8,8 @@ require('./startup/prod')(app)
 
 const port = process.env.PORT || 8000
 
-app.listen(port, () => {
+const server = app.listen(port, () => {
   winston.info(`Started listerning to port ${port}....`)
 })
+
+module.exports = server
