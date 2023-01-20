@@ -6,6 +6,10 @@ require('./startup/routes')(app)
 require('./startup/db')()
 require('./startup/prod')(app)
 
+app.get('/', (req, res) => {
+  res.status(200)
+})
+
 const port = process.env.PORT || 8000
 
 const server = app.listen(port, () => {
