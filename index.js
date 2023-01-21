@@ -7,7 +7,7 @@ require('./startup/db')()
 require('./startup/prod')(app)
 
 app.get('/', (req, res) => {
-  res.status(200)
+  res.status(200).send('Server is working')
 })
 
 const port = process.env.PORT || 8000
